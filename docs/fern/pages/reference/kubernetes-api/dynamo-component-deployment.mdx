@@ -312,6 +312,10 @@ The operator maintains observed state under `status`.
 
 <ParamField path="status.component" type="ComponentReplicaStatus">
   Replica status for this component: desired, ready, and available counts. Shares the shape documented on the [DGD Reference](dynamo-graph-deployment.mdx#componentreplicastatus).
+
+  For LeaderWorkerSet-backed components, `readyReplicas` counts ready leader/worker groups, not individual Pods; `availableReplicas` is omitted. The operator uses readiness as a fallback when availability is not reported to calculate old-generation scale-down. An explicitly reported availability count, including zero, takes precedence.
+
+  During a worker generation update, the operator waits until every replacement worker component reaches the replica count requested by the DGD and all old worker DCDs have observed zero replicas with their Pods terminated. It then deletes the old DCDs. After observing their deletion, it advances the current worker hash and the DGD component status reflects the replacement generation's runtime namespace and metadata. This completion gate retains old DCD objects, not running replicas: `Recreate` still scales old replicas to zero before starting replacements.
 </ParamField>
 
 ## Additional Types
